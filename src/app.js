@@ -3,14 +3,13 @@ import mongoose from 'mongoose';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import multer from 'multer';
-import Image from './models/Image';
-import multer from 'multer';
+import Image from './schema.js';
 
 dotenv.config();
 const MONGODB_URI = 'mongodb+srv://nickoy7:uVQ5JOFTJUrMHFvw@cluster0.jbw6vdb.mongodb.net/';
 
 const app = express();
-const port = process.env.PORT || 5000;
+const port = process.env.PORT || 2000;
 
 app.use(cors());
 app.use(express.json());
@@ -35,6 +34,23 @@ app.post('/upload', upload.single('image'), (req, res) => {
   newImage.save()
     .then(() => res.json('Image uploaded successfully'))
     .catch(err => res.status(400).json(`Error: ${err}`));
+});
+
+app.get('/images', async (req, res) => {
+  const { month, year } = req.query;
+
+  try {
+    const images = await Image.find({ month, year });
+    var newImages = [];
+    images.forEach(image => {
+      const base64Image = Buffer.from(image.img.data).toString('base64');
+      const imageUrl = `data:${image.img.contentType};base64,${base64Image}`;
+      newImages.push(imageUrl);
+    })
+    res.json(newImages);
+  } catch (error) {
+    res.status(400).json(`Error: ${error}`);
+  }
 });
 
 app.listen(port, () => {
